@@ -14,7 +14,6 @@ struct ContentView: View {
     @State private var result=true
     @State private var showAlert = false
     @State private var PreviousCard=Image(systemName: "photo")
-    //@State private var PreviousCard2=Image(systemName: "photo")
     @State private var BargainingChip=3
     @State private var isPresented = false
     @State private var GameOver=false
@@ -29,7 +28,7 @@ struct ContentView: View {
             switch temp.rank{
             case "A":
                 if temp.suit=="♠" {
-                    game.SetScores(scores: 0)
+                    result=game.SetScores(scores: 0)
                 }else{
                     result=game.SetScores(scores: game.totalscores+1)
                 }
@@ -41,7 +40,7 @@ struct ContentView: View {
                 print("指定")
             case "10":  //加/減10
                 if game.totalscores-10>=0 {
-                    game.SetScores(scores: game.totalscores-10)
+                    result=game.SetScores(scores: game.totalscores-10)
                 }else{
                     result=game.SetScores(scores: game.totalscores+10)
                 }
@@ -49,12 +48,12 @@ struct ContentView: View {
                 print("pass")
             case "Q":   //加/減20
                 if game.totalscores-20>=0 {
-                    game.SetScores(scores: game.totalscores-20)
+                    result=game.SetScores(scores: game.totalscores-20)
                 }else{
                     result=game.SetScores(scores: game.totalscores+20)
                 }
             case "K":   //scores維持在99
-                game.SetScores(scores: 99)
+                result=game.SetScores(scores: 99)
             default:
                 print("??")
             }
@@ -77,16 +76,6 @@ struct ContentView: View {
         }else{
             if GameOver==false{
                 VStack{
-                    if result {
-                        Text("result: true")
-                    }else{
-                        Text("result: false")
-                    }
-                    if isPresented {
-                        Text("isPresented: true")
-                    }else{
-                        Text("isPresented: false")
-                    }
                     Text("Bargaining Chip: \(BargainingChip)")
                     Text("total scores: \(game.totalscores)")
                     ZStack{
@@ -114,7 +103,7 @@ struct ContentView: View {
                                 switch temp3.rank{
                                 case "A":
                                     if temp3.suit=="♠" {
-                                        game.SetScores(scores: 0)
+                                        result=game.SetScores(scores: 0)
                                     }else{
                                         result=game.SetScores(scores: game.totalscores+1)
                                     }
@@ -137,7 +126,7 @@ struct ContentView: View {
                                         showAlert = true
                                         activeAlert = .first
                                     }else{
-                                        game.SetScores(scores: game.totalscores+10)
+                                        result=game.SetScores(scores: game.totalscores+10)
                                         if result != false {
                                             npcAction()
                                         }
@@ -150,13 +139,13 @@ struct ContentView: View {
                                         showAlert = true
                                         activeAlert = .second
                                     }else{
-                                        game.SetScores(scores: game.totalscores+20)
+                                        result=game.SetScores(scores: game.totalscores+20)
                                         if result != false {
                                             npcAction()
                                         }
                                     }
                                 case "K":   //scores維持在99
-                                    game.SetScores(scores: 99)
+                                    result=game.SetScores(scores: 99)
                                     npcAction()
                                 default:
                                     print("??")
@@ -173,10 +162,7 @@ struct ContentView: View {
                                 }
                             }){
                                 //Player手牌
-                                Image("\(game.player.handCards[index].rank)\(game.player.handCards[index].suit)")
-                                    .resizable()
-                                    .frame(height:150)
-                                    .scaledToFit()
+                                PokerView(game:game, index:index)
                             }
                             .alert(isPresented: $showAlert, content: {
                                 switch activeAlert {
@@ -189,11 +175,17 @@ struct ContentView: View {
                                                     if result != false {
                                                         npcAction()
                                                     }
+                                                    if result==false {
+                                                        isPresented=true
+                                                    }
                                                 },
                                                 secondaryButton: .destructive(Text("Substract")) {
                                                     result=game.SetScores(scores: game.totalscores-10)
                                                     if result != false {
                                                         npcAction()
+                                                    }
+                                                    if result==false {
+                                                        isPresented=true
                                                     }
                                                 }
                                             )
@@ -206,11 +198,17 @@ struct ContentView: View {
                                                     if result != false {
                                                         npcAction()
                                                     }
+                                                    if result==false {
+                                                        isPresented=true
+                                                    }
                                                 },
                                                 secondaryButton: .destructive(Text("Substract")) {
                                                     result=game.SetScores(scores: game.totalscores-20)
                                                     if result != false {
                                                         npcAction()
+                                                    }
+                                                    if result==false {
+                                                        isPresented=true
                                                     }
                                                 }
                                         )
@@ -223,12 +221,19 @@ struct ContentView: View {
                     }
                 }
             }else{  //遊戲結束
-                Button(action:{
-                    game.PlayAgain()
-                    result=true
-                    gameStart=false
-                }){
+                VStack{
                     Text("Game Over")
+                    Button(action:{
+                        game.PlayAgain()
+                        result=true
+                        gameStart=false
+                        BargainingChip=3
+                        GameOver=false
+                        PreviousCard=Image(systemName: "photo")
+                        isPresented=false
+                    }){
+                        Text("Reset")
+                    }
                 }
             }
         }
@@ -261,6 +266,8 @@ struct ResultView: View {
             Button("Play Again") {
                 if turn==0 {
                     BargainingChip-=1
+                }else{
+                    BargainingChip+=1
                 }
                 if BargainingChip<=0 {
                     GameOver=true
@@ -278,3 +285,14 @@ enum ActiveAlert {
     case first, second
 }
 
+
+struct PokerView: View {
+    @StateObject var game:Game
+    let index:Int
+    var body: some View {
+        Image("\(game.player.handCards[index].rank)\(game.player.handCards[index].suit)")
+            .resizable()
+            .frame(height:150)
+            .scaledToFit()
+    }
+}
