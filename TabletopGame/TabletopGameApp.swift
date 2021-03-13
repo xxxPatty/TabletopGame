@@ -10,8 +10,9 @@ import SwiftUI
 @main
 struct TabletopGameApp: App {
     var body: some Scene {
+        let game=Game()
         WindowGroup {
-            ContentView()
+            ContentView(game:game, player:game.player)
         }
     }
 }
