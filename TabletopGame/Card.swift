@@ -31,7 +31,7 @@ class CardDeck{ //公牌
         }
         let index=Int.random(in:0..<cards.count)
         let temp=cards[index]
-        discard.append(temp)
+        //discard.append(temp)
         cards.remove(at: index)
         return temp
     }

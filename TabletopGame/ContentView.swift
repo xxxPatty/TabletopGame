@@ -23,6 +23,7 @@ struct ContentView: View {
         DispatchQueue.main.asyncAfter(deadline:DispatchTime.now() + time) {
             game.turn=1
             let temp = game.npc.PlayACard()
+            game.cardDeck.AddToDiscard(card: temp)
             PreviousCard=Image("\(temp.rank)\(temp.suit)")
             //加/減分數
             switch temp.rank{
@@ -76,6 +77,8 @@ struct ContentView: View {
         }else{
             if GameOver==false{
                 VStack{
+                    Text("Community Cards: \(game.cardDeck.cards.count)")
+                    Text("Discard Cards: \(game.cardDeck.discard.count)")
                     Text("Bargaining Chip: \(BargainingChip)")
                     Text("total scores: \(game.totalscores)")
                     ZStack{
