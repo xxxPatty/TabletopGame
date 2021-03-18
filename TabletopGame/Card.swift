@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import AVFoundation
 
 struct Card{
     let rank:String //點數
@@ -37,6 +37,7 @@ class CardDeck{ //公牌
     }
     func Complement()->Void{  //補充公牌
         discard.shuffle()
+        playSound(sound: "shuffle", type: "mp3")
         cards=discard
         discard=[]
     }
@@ -72,9 +73,11 @@ class Game:ObservableObject{
     var npc=Player()
     var totalscores=0
     var turn=0  //0為自己，1為電腦
+    //@AppStorage("BargainingChip") var BargainingChip: Int?=3
     init(){
         //洗牌
         cardDeck.cards.shuffle()
+        playSound(sound: "shuffle", type: "mp3")
         //先各發五張牌
         for _ in 0..<5 {
             player.handCards.append(cardDeck.Draw())
@@ -97,6 +100,7 @@ class Game:ObservableObject{
         turn=0 
         //洗牌
         cardDeck.cards.shuffle()
+        playSound(sound: "shuffle", type: "mp3")
         //先各發五張牌
         for _ in 0..<5 {
             player.handCards.append(cardDeck.Draw())
@@ -105,3 +109,15 @@ class Game:ObservableObject{
     }
 }
 
+var audioPlayer: AVAudioPlayer?
+
+func playSound(sound: String, type: String) {
+    if let path = Bundle.main.path(forResource: sound, ofType: type) {
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+            audioPlayer?.play()
+        } catch {
+            print("ERROR")
+        }
+    }
+}
