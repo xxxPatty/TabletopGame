@@ -23,12 +23,30 @@ struct ContentView: View {
     @State private var npcCardY=[0, 0, 0, 0, 0]
     @State private var back:[Image]=[Image("back"), Image("back"), Image("back"), Image("back"), Image("back")]
     @State private var showBack=[true, true, true, true, true]
+    var timer: Timer?
     let musicPlayer=AVPlayer()
-    func npcAction()->Void{ //換電腦出牌，延遲1.5秒再做
-        let time:TimeInterval = 0.5
-        DispatchQueue.main.asyncAfter(deadline:DispatchTime.now() + time) {
-            game.turn=1
-            let temp = game.npc.PlayACard()
+    @State private var PlayerNum=2
+    @State private var cardOpacity:Double=1.0
+    @State private var showingActionSheet=false
+    @State private var assignPlayer=false
+    func npcAction()->Void{ //換電腦出牌，延遲0.5秒再做
+        if !assignPlayer {
+            if game.direction {
+                game.turn=1
+            }else{
+                game.turn=game.npcNum
+            }
+        }else{
+            assignPlayer=false
+        }
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
+            if game.turn==0 {
+                cardOpacity=1
+                timer.invalidate()
+                return
+            }
+            var revolve=false
+            let temp = game.npc[game.turn-1].PlayACard()
             //隨機選一張牌，使牌上升（動畫）
             let r=Int.random(in: 0..<5)
             npcCardY[r] = -20
@@ -56,7 +74,9 @@ struct ContentView: View {
                         result=game.SetScores(scores: game.totalscores+(Int(temp.rank) ?? 0))
                     case "4":   //迴轉
                         print("迴轉")
-                    case "5":   //指定
+                        game.direction.toggle()
+                        revolve=true
+                    case "5":   //指定，指定下一個人
                         print("指定")
                     case "10":  //加/減10
                         if game.totalscores-10>=0 {
@@ -80,22 +100,57 @@ struct ContentView: View {
                     //再抽一張牌
                     let temp2 = game.cardDeck.Draw()
                     //加入手牌中
-                    game.npc.AddToHandCards(card: temp2)
+                    game.npc[game.turn-1].AddToHandCards(card: temp2)
                     if result==false {
                         isPresented=true
+                        timer.invalidate()
+                        return
+                    }
+                    if revolve {
+                        if game.direction {
+                            game.turn+=1
+                        }else{
+                            game.turn-=1
+                        }
+                    }else{
+                        if game.direction {  //順時針
+                            if game.turn>=game.npcNum {
+                                game.turn=0
+                            }else{
+                                game.turn+=1
+                            }
+                        }else{  //逆時針
+                            if game.turn<=1 {
+                                game.turn=0
+                            }else{
+                                game.turn-=1
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+    func generateActionSheet(options: Int) -> ActionSheet { //產生動態數量的Button
+        var buttons:[ActionSheet.Button]=[]
+        for i in 0..<options {
+            buttons.append(Alert.Button.default(Text("Player \(i+1)"), action: { game.turn=i+1; assignPlayer=true;  npcAction()}))
+        }
+        return ActionSheet(title: Text("Select a player"),
+                   buttons: buttons )
     }
     var body: some View {
         ZStack{
             Color("BackgroundColor")
             if gameStart==false{
                 VStack{
+                    Stepper("Player number \(PlayerNum)", value: $PlayerNum, in: 2...8)
                     Button(action:{
                         gameStart=true
                         PreviousCard=Image("Deck Shuffle")
+                        //設定人數
+                        game.npcNum=PlayerNum-1
+                        game.PlayAgain()
                     }){
                         Text("Play")
                     }
@@ -103,7 +158,7 @@ struct ContentView: View {
                         Text("Rules")
                     })
                 }
-                .onAppear{
+                .onAppear{  //background music
                     let fileUrl=Bundle.main.url(forResource:"gambling music", withExtension:"mp3")!
                     let playerItem=AVPlayerItem(url:fileUrl)
                     musicPlayer.replaceCurrentItem(with:playerItem)
@@ -128,8 +183,10 @@ struct ContentView: View {
                             .foregroundColor(Color("FontColor"))
                         Text("total scores: \(game.totalscores)")
                             .foregroundColor(Color("FontColor"))
+                        //turn
+                        Text("Player \(game.turn)")
                         ZStack{
-                            ForEach(game.npc.handCards.indices){ (index) in
+                            ForEach(game.npc[0].handCards.indices){ (index) in
                                 if showBack[index] {
                                     back[index]
                                         .resizable()
@@ -152,11 +209,6 @@ struct ContentView: View {
                                 .resizable()
                                 .frame(width:100, height:150)
                                 .scaledToFit()
-    //                        PreviousCard2
-    //                            .resizable()
-    //                            .frame(height:150)
-    //                            .scaledToFit()
-    //                            .rotationEffect(.degrees(90))
                         }
                         HStack{
                             ForEach(game.player.handCards.indices){(index) in
@@ -177,46 +229,63 @@ struct ContentView: View {
                                         }else{
                                             result=game.SetScores(scores: game.totalscores+1)
                                         }
-                                        if result != false {
+                                        if result==false {  //不能移出SWITCH CASE，不然10/Q會出錯
+                                            isPresented=true
+                                        }else {
                                             npcAction()
                                         }
                                     case "2", "3", "6", "7", "8", "9":
                                         result=game.SetScores(scores: game.totalscores+(Int(temp3.rank) ?? 0))
-                                        if result != false {
+                                        if result==false {
+                                            isPresented=true
+                                        }else {
                                             npcAction()
                                         }
                                     case "4":   //迴轉
                                         print("迴轉")
+                                        game.direction.toggle()
                                         npcAction()
                                     case "5":   //指定
                                         print("指定")
-                                        npcAction()
+                                        showingActionSheet=true
                                     case "10":  //加/減10
                                         if game.totalscores-10>=0{
                                             showAlert = true
                                             activeAlert = .first
                                         }else{
                                             result=game.SetScores(scores: game.totalscores+10)
-                                            if result != false {
+                                            if result==false {
+                                                isPresented=true
+                                            }else {
                                                 npcAction()
                                             }
                                         }
                                     case "J":   //pass
                                         print("pass")
-                                        npcAction()
+                                        if result==false {
+                                            isPresented=true
+                                        }else {
+                                            npcAction()
+                                        }
                                     case "Q":   //加/減20
                                         if game.totalscores-20>=0{
                                             showAlert = true
                                             activeAlert = .second
                                         }else{
                                             result=game.SetScores(scores: game.totalscores+20)
-                                            if result != false {
+                                            if result==false {
+                                                isPresented=true
+                                            }else {
                                                 npcAction()
                                             }
                                         }
                                     case "K":   //scores維持在99
                                         result=game.SetScores(scores: 99)
-                                        npcAction()
+                                        if result==false {
+                                            isPresented=true
+                                        }else {
+                                            npcAction()
+                                        }
                                     default:
                                         print("??")
                                     }
@@ -224,15 +293,12 @@ struct ContentView: View {
                                     let temp = game.cardDeck.Draw()
                                     //加入手牌中
                                     game.player.AddToHandCards(card: temp)
-                                    print(game.player.handCards[2])
-                                    print(game.player.handCards[4])
-                                    
-                                    if result==false {
-                                        isPresented=true
-                                    }
+                                    //手牌變半透明
+                                    cardOpacity=0.5
                                 }){
                                     //Player手牌
                                     PokerView(game:game, index:index)
+                                        .opacity(cardOpacity)
                                 }
                                 .alert(isPresented: $showAlert, content: {
                                     switch activeAlert {
@@ -242,20 +308,18 @@ struct ContentView: View {
                                                     message: Text("Plus 10 or substract 10?"),
                                                     primaryButton: .destructive(Text("Plus")) {
                                                         result=game.SetScores(scores: game.totalscores+10)
-                                                        if result != false {
-                                                            npcAction()
-                                                        }
                                                         if result==false {
                                                             isPresented=true
+                                                        }else {
+                                                            npcAction()
                                                         }
                                                     },
                                                     secondaryButton: .destructive(Text("Substract")) {
                                                         result=game.SetScores(scores: game.totalscores-10)
-                                                        if result != false {
-                                                            npcAction()
-                                                        }
                                                         if result==false {
                                                             isPresented=true
+                                                        }else {
+                                                            npcAction()
                                                         }
                                                     }
                                                 )
@@ -265,28 +329,29 @@ struct ContentView: View {
                                                     message: Text("Plus 20 or substract 20?"),
                                                     primaryButton: .destructive(Text("Plus")) {
                                                         result=game.SetScores(scores: game.totalscores+20)
-                                                        if result != false {
-                                                            npcAction()
-                                                        }
                                                         if result==false {
                                                             isPresented=true
+                                                        }else {
+                                                            npcAction()
                                                         }
                                                     },
                                                     secondaryButton: .destructive(Text("Substract")) {
                                                         result=game.SetScores(scores: game.totalscores-20)
-                                                        if result != false {
-                                                            npcAction()
-                                                        }
                                                         if result==false {
                                                             isPresented=true
+                                                        }else {
+                                                            npcAction()
                                                         }
                                                     }
                                             )
                                     }
                                 })
                                 .sheet(isPresented: $isPresented){
-                                    ResultView(isPresented:$isPresented, turn: game.turn, BargainingChip: $BargainingChip, game:game, GameOver:$GameOver, PreviousCard:$PreviousCard, result:$result)
+                                    ResultView(isPresented:$isPresented, turn: game.turn, BargainingChip: $BargainingChip, game:game, GameOver:$GameOver, PreviousCard:$PreviousCard, result:$result, cardOpacity:$cardOpacity)
                                 }
+                                .actionSheet(isPresented: $showingActionSheet, content:{
+                                    generateActionSheet(options:game.npcNum)
+                                })
                             }
                         }
                     }
@@ -301,6 +366,7 @@ struct ContentView: View {
                             GameOver=false
                             PreviousCard=Image(systemName: "photo")
                             isPresented=false
+                            cardOpacity=1
                         }){
                             Text("Reset")
                         }
@@ -327,6 +393,7 @@ struct ResultView: View {
     @Binding var GameOver:Bool
     @Binding var PreviousCard:Image
     @Binding var result:Bool
+    @Binding var cardOpacity:Double
     var body: some View {
         VStack{
             if turn==0 {
@@ -347,6 +414,7 @@ struct ResultView: View {
                 game.PlayAgain()
                 PreviousCard=Image("Deck Shuffle")
                 isPresented=false
+                cardOpacity=1
             }
         }
     }

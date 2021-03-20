@@ -70,18 +70,25 @@ class Player:ObservableObject{   //玩家
 class Game:ObservableObject{
     var cardDeck=CardDeck()
     @Published var player=Player()
-    var npc=Player()
+    var npc=[Player]()
     var totalscores=0
     var turn=0  //0為自己，1為電腦
-    //@AppStorage("BargainingChip") var BargainingChip: Int?=3
+    var direction=true  //true->順時針，false->逆時針
+    var npcNum=1
     init(){
         //洗牌
         cardDeck.cards.shuffle()
         playSound(sound: "shuffle", type: "mp3")
+        for _ in 0..<npcNum {
+            npc.append(Player())
+        }
         //先各發五張牌
         for _ in 0..<5 {
             player.handCards.append(cardDeck.Draw())
-            npc.handCards.append(cardDeck.Draw())
+            for i in 0..<npcNum {
+                npc[i].handCards.append(cardDeck.Draw())
+            }
+            
         }
     }
     func SetScores(scores:Int)->Bool{
@@ -95,16 +102,23 @@ class Game:ObservableObject{
     func PlayAgain(){
         cardDeck=CardDeck()
         player=Player()
-        npc=Player()
+        npc=[Player]()
         totalscores=0
-        turn=0 
+        turn=0
+        direction=true
         //洗牌
         cardDeck.cards.shuffle()
         playSound(sound: "shuffle", type: "mp3")
+        for _ in 0..<npcNum {
+            npc.append(Player())
+        }
         //先各發五張牌
         for _ in 0..<5 {
             player.handCards.append(cardDeck.Draw())
-            npc.handCards.append(cardDeck.Draw())
+            for i in 0..<npcNum {
+                npc[i].handCards.append(cardDeck.Draw())
+            }
+            
         }
     }
 }
