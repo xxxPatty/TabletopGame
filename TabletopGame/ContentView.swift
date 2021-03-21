@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var cardOpacity:Double=1.0
     @State private var showingActionSheet=false
     @State private var assignPlayer=false
+    @State private var moneyY=UIScreen.main.bounds.height-200
     func npcAction()->Void{ //換電腦出牌，延遲0.5秒再做
         if !assignPlayer {
             if game.direction {
@@ -144,21 +145,81 @@ struct ContentView: View {
             Color("BackgroundColor")
             if gameStart==false{
                 VStack{
-                    Stepper("Player number \(PlayerNum)", value: $PlayerNum, in: 2...8)
-                    Button(action:{
-                        gameStart=true
-                        PreviousCard=Image("Deck Shuffle")
-                        //設定人數
-                        game.npcNum=PlayerNum-1
-                        game.PlayAgain()
-                    }){
-                        Text("Play")
+                    Spacer()
+                    HStack{
+                        Image("9♠")
+                            .resizable()
+                            .frame(height:100)
+                            .scaledToFit()
+                            .rotationEffect(.degrees(-30))
+                            .offset(x:55)
+                        Image("9♥")
+                            .resizable()
+                            .frame(height:100)
+                            .scaledToFit()
+                            .offset(x:-55)
                     }
-                    Link(destination: URL(string: "https://blog.xuite.net/yun2011/class2015/452269784")!, label: {
-                        Text("Rules")
-                    })
+                    Spacer()
+                    VStack(spacing:20){
+                        Stepper(value: $PlayerNum, in: 2...8){
+                            HStack{
+                                Text("Player number \(PlayerNum)")
+                                    .fontWeight(.bold)
+                                    .font(.system(size:30))
+                                    .padding(5)
+                                //ButtonView(text:"Player number \(PlayerNum)", size:30)
+                                Image(systemName: "person.3")
+                            }
+                        }
+                        .background(Color(red:53/255, green:53/255, blue:53/255))
+                        .cornerRadius(10)
+                        .foregroundColor(.white)
+                        .padding(5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color(red:53/255, green:53/255, blue:53/255), lineWidth: 5)
+                        )
+                        Button(action:{
+                            gameStart=true
+                            PreviousCard=Image("Deck Shuffle")
+                            //設定人數
+                            game.npcNum=PlayerNum-1
+                            game.PlayAgain()
+                        }){
+                            ButtonView(text:"Play", size:30)
+                        }
+                        Link(destination: URL(string: "https://blog.xuite.net/yun2011/class2015/452269784")!, label: {
+                            ButtonView(text:"Rules", size:30)
+                        })
+                        //choose back image
+                        HStack{
+                            Button(action:{
+                                back=[Image("back"), Image("back"), Image("back"), Image("back"), Image("back")]
+                            }){
+                                Image("back")
+                                    .resizable()
+                                    .frame(height:100)
+                                    .scaledToFit()
+                            }
+                            Spacer()
+                            Text("or")
+                                .foregroundColor(Color("FontColor"))
+                                .font(.system(size:30))
+                            Spacer()
+                            Button(action:{
+                                back=[Image("back2"), Image("back2"), Image("back2"), Image("back2"), Image("back2")]
+                            }){
+                                Image("back2")
+                                    .resizable()
+                                    .frame(height:100)
+                                    .scaledToFit()
+                            }
+                        }
+                    }
+                    Spacer()
                 }
                 .onAppear{  //background music
+                    //BargainingChip=1
                     let fileUrl=Bundle.main.url(forResource:"gambling music", withExtension:"mp3")!
                     let playerItem=AVPlayerItem(url:fileUrl)
                     musicPlayer.replaceCurrentItem(with:playerItem)
@@ -166,7 +227,12 @@ struct ContentView: View {
             }else{
                 if GameOver==false{
                     VStack{
-                        Toggle("Background Music", isOn: $BackgroundMusic)
+                        Toggle(isOn: $BackgroundMusic){
+                            HStack{
+                                Text("Background Music")
+                                Image(systemName:"music.note")
+                            }
+                        }
                             .onChange(of: BackgroundMusic, perform: { BackgroundMusic in
                                 if BackgroundMusic {
                                     musicPlayer.play()
@@ -175,35 +241,42 @@ struct ContentView: View {
                                 }
                             })
                             .foregroundColor(Color("FontColor"))
+                            .toggleStyle(SwitchToggleStyle(tint: Color(red:53/255, green:53/255, blue:53/255)))
+                        Spacer()
 //                        Text("Community Cards: \(game.cardDeck.cards.count)")
 //                            .foregroundColor(Color("FontColor"))
 //                        Text("Discard Cards: \(game.cardDeck.discard.count)")
 //                            .foregroundColor(Color("FontColor"))
-                        Text("Bargaining Chip: \(BargainingChip)")
-                            .foregroundColor(Color("FontColor"))
-                        Text("total scores: \(game.totalscores)")
-                            .foregroundColor(Color("FontColor"))
-                        //turn
-                        Text("Player \(game.turn)")
-                        ZStack{
-                            ForEach(game.npc[0].handCards.indices){ (index) in
-                                if showBack[index] {
-                                    back[index]
-                                        .resizable()
-                                        .frame(height:150)
-                                        .scaledToFit()
-                                        .offset(x:CGFloat(((index)*20)), y:CGFloat(npcCardY[index]))
-                                }else{
-                                    back[index]
-                                        .resizable()
-                                        .frame(height:150)
-                                        .scaledToFit()
-                                        .offset(x:0, y:CGFloat(npcCardY[index]))
-                                        .hidden()
+                        HStack{
+                            ZStack{
+                                ForEach(game.npc[0].handCards.indices){ (index) in
+                                    if showBack[index] {
+                                        back[index]
+                                            .resizable()
+                                            .frame(height:150)
+                                            .scaledToFit()
+                                            .offset(x:CGFloat(((index-1)*20)), y:CGFloat(npcCardY[index]))
+                                    }else{
+                                        back[index]
+                                            .resizable()
+                                            .frame(height:150)
+                                            .scaledToFit()
+                                            .offset(x:0, y:CGFloat(npcCardY[index]))
+                                            .hidden()
+                                    }
                                 }
                             }
+                            .animation(.easeOut(duration:0.5))
+                            VStack{
+                                //turn
+                                Text("Turn: Player \(game.turn)")
+                                    .foregroundColor(Color("FontColor"))
+                                Text("Total scores: \(game.totalscores)")
+                                    .foregroundColor(Color("FontColor"))
+                                Text("Bargaining Chip: \(BargainingChip)")
+                                    .foregroundColor(Color("FontColor"))
+                            }
                         }
-                        .animation(.easeOut(duration:0.5))
                         ZStack{
                             PreviousCard
                                 .resizable()
@@ -354,23 +427,45 @@ struct ContentView: View {
                                 })
                             }
                         }
+                        Spacer()
                     }
                 }else{  //遊戲結束
-                    VStack{
-                        Text("Game Over")
-                        Button(action:{
-                            game.PlayAgain()
-                            result=true
-                            gameStart=false
-                            BargainingChip=3
-                            GameOver=false
-                            PreviousCard=Image(systemName: "photo")
-                            isPresented=false
-                            cardOpacity=1
-                        }){
-                            Text("Reset")
+                    ZStack{
+                        VStack(spacing:20){
+                            Text("Game Over")
+                                .foregroundColor(Color("FontColor"))
+                                .font(.system(size:30))
+                            Button(action:{
+                                game.PlayAgain()
+                                result=true
+                                gameStart=false
+                                BargainingChip=3
+                                GameOver=false
+                                PreviousCard=Image(systemName: "photo")
+                                isPresented=false
+                                cardOpacity=1
+                            }){
+                                ButtonView(text:"Reset", size:30)
+                            }
                         }
                     }
+                    Image("bankrupt")
+                        .resizable()
+                        .frame(height:200)
+                        .scaledToFit()
+                        .position(x:UIScreen.main.bounds.width/2+100, y:UIScreen.main.bounds.height-200)
+                    Image("money")
+                        .resizable()
+                        .frame(height:200)
+                        .scaledToFit()
+                        .position(x:UIScreen.main.bounds.width/2+100, y:moneyY)
+                        .onAppear {
+                            let baseAnimation = Animation.easeIn(duration: 1)
+                            let repeated = baseAnimation.repeatForever(autoreverses:false)
+                            withAnimation(repeated) {
+                                moneyY=0
+                            }
+                        }
                 }
             }
         }
@@ -395,13 +490,17 @@ struct ResultView: View {
     @Binding var result:Bool
     @Binding var cardOpacity:Double
     var body: some View {
-        VStack{
+        VStack(spacing:20){
             if turn==0 {
                 Text("輸了")
+                    .fontWeight(.bold)
+                    .font(.system(size:30))
             }else{
                 Text("恭喜贏了")
+                    .fontWeight(.bold)
+                    .font(.system(size:30))
             }
-            Button("Play Again") {
+            Button(action:{
                 if turn==0 {
                     BargainingChip-=1
                 }else{
@@ -415,6 +514,8 @@ struct ResultView: View {
                 PreviousCard=Image("Deck Shuffle")
                 isPresented=false
                 cardOpacity=1
+            }){
+                ButtonView(text:"Play Again", size:30)
             }
         }
     }
@@ -433,5 +534,25 @@ struct PokerView: View {
             .resizable()
             .frame(height:150)
             .scaledToFit()
+    }
+}
+
+struct ButtonView: View {
+    let text:String
+    let size:CGFloat
+    var body: some View {
+        Text(text)
+            .fontWeight(.bold)
+            .font(.system(size:size))
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .padding(5)
+            .background(Color(red:53/255, green:53/255, blue:53/255))
+            .cornerRadius(10)
+            .foregroundColor(.white)
+            .padding(5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(red:53/255, green:53/255, blue:53/255), lineWidth: 5)
+            )
     }
 }

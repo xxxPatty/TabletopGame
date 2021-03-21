@@ -15,6 +15,8 @@
 		7BCA9DD525FDFA4700C40751 /* shuffle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA9DD325FDFA4600C40751 /* shuffle.mp3 */; };
 		7BCA9DD625FDFA4700C40751 /* play a card.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA9DD425FDFA4700C40751 /* play a card.mp3 */; };
 		7BCA9DD925FF229E00C40751 /* gambling music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA9DD825FF229E00C40751 /* gambling music.mp3 */; };
+		7BCA9DE1260664B000C40751 /* AppIcon2@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA9DDF260664AF00C40751 /* AppIcon2@3x.png */; };
+		7BCA9DE2260664B000C40751 /* AppIcon2@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA9DE0260664B000C40751 /* AppIcon2@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +30,8 @@
 		7BCA9DD325FDFA4600C40751 /* shuffle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = shuffle.mp3; sourceTree = "<group>"; };
 		7BCA9DD425FDFA4700C40751 /* play a card.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "play a card.mp3"; sourceTree = "<group>"; };
 		7BCA9DD825FF229E00C40751 /* gambling music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "gambling music.mp3"; sourceTree = "<group>"; };
+		7BCA9DDF260664AF00C40751 /* AppIcon2@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon2@3x.png"; sourceTree = "<group>"; };
+		7BCA9DE0260664B000C40751 /* AppIcon2@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon2@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +66,8 @@
 			children = (
 				7B26C7CF25F8A0A300E6BCEA /* NineNineApp.swift */,
 				7B26C7D125F8A0A300E6BCEA /* ContentView.swift */,
+				7BCA9DE0260664B000C40751 /* AppIcon2@2x.png */,
+				7BCA9DDF260664AF00C40751 /* AppIcon2@3x.png */,
 				7B26C7DF25F8BD7C00E6BCEA /* Card.swift */,
 				7BCA9DD425FDFA4700C40751 /* play a card.mp3 */,
 				7BCA9DD325FDFA4600C40751 /* shuffle.mp3 */,
@@ -140,7 +146,9 @@
 			files = (
 				7BCA9DD525FDFA4700C40751 /* shuffle.mp3 in Resources */,
 				7B26C7D725F8A0AA00E6BCEA /* Preview Assets.xcassets in Resources */,
+				7BCA9DE2260664B000C40751 /* AppIcon2@2x.png in Resources */,
 				7BCA9DD625FDFA4700C40751 /* play a card.mp3 in Resources */,
+				7BCA9DE1260664B000C40751 /* AppIcon2@3x.png in Resources */,
 				7BCA9DD925FF229E00C40751 /* gambling music.mp3 in Resources */,
 				7B26C7D425F8A0AA00E6BCEA /* Assets.xcassets in Resources */,
 			);
